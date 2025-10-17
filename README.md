@@ -89,6 +89,63 @@ foreach (Subfield subfield in author?.Subfields ?? new List<Subfield>())
 }
 ```
 
+### Pattern-Based Field Extraction
+
+TinyMarc includes a powerful pattern extraction system for complex data retrieval:
+
+```csharp
+using TinyMarc.PatternExtraction;
+
+// Basic field extraction
+PatternExtractor extractor = new PatternExtractor("245a");
+string[] titles = extractor.Extract(record);
+
+// Multiple fields in one pattern
+PatternExtractor multiExtractor = new PatternExtractor("100a:110a:111a");
+string[] authors = multiExtractor.Extract(record);
+
+// Control field extraction with slicing
+PatternExtractor yearExtractor = new PatternExtractor("008[7-10]");
+string[] years = yearExtractor.Extract(record);
+
+// Data field with indicators and multiple subfields
+PatternExtractor titleExtractor = new PatternExtractor("245|10|abc");
+string[] titleData = titleExtractor.Extract(record);
+```
+
+### Advanced Pattern Extraction Options
+
+```csharp
+// Configure extraction behavior
+ExtractorOptions options = new ExtractorOptions(
+    First: true,                                    // Only first value
+    TrimPunctuation: true,                         // Remove punctuation
+    Default: "Unknown",                            // Default if no data found
+    AllowDuplicates: false,                        // Remove duplicates
+    Separator: " -- ",                             // Join subfields
+    AlternateField: AlternateField.Include         // Include 880 fields
+);
+
+PatternExtractor extractor = new PatternExtractor("245abc", options);
+string[] results = extractor.Extract(record);
+
+// Working with alternate script fields (880 fields)
+ExtractorOptions alternateOnly = new ExtractorOptions(
+    AlternateField: AlternateField.Only
+);
+PatternExtractor altExtractor = new PatternExtractor("245a", alternateOnly);
+string[] alternateScriptTitles = altExtractor.Extract(record);
+```
+
+#### Pattern Syntax
+
+- **Control Fields**: `001`, `008[0-5]` (with optional character slicing)
+- **Data Fields**: `245abc` (tag + subfield codes)
+- **With Indicators**: `245|10|abc` (tag + |indicators| + subfield codes)
+- **Multiple Patterns**: `100a:110a:245a` (colon-separated)
+- **All Subfields**: `245` (omit subfield codes to get all)
+- **Repeated Subfields**: `650aa` (repeat code to join multiple instances)
+
 ## Character Encoding Support
 
 TinyMarc automatically detects and handles both UTF-8 and MARC-8 encodings:
